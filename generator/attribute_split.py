@@ -138,5 +138,8 @@ def attributes(bundle: dict) -> dict:
             "value": bundle["mr"] / 100
         }
     }
+    # TODO: height and health logic
         
     return powers
+
+
