@@ -1,4 +1,9 @@
+from util import command, generic
+
+PEHKUI = "scale set pehkui:"
+
 # TODO: Get modded damage names/tags (i.e. Create's crushing wheels)
+# Hint: Find in generated/resources/data/... for most mods
 
 # https://minecraft.wiki/w/Tag#Damage_type_tags
 PHYSICAL_DAMAGE_TAGS = (
@@ -56,6 +61,9 @@ PHYSICAL_DAMAGE_NAMES = (
     "wither.player"
     "origins:no_water_for_gills",
     "origins:no_water_for_gills.player",
+    "create:crush",
+    "create:mechanical_drill",
+    "create:mechanical_saw"
 )
 MAGICAL_DAMAGE_NAMES = (
     "badRespawnPoint",
@@ -89,7 +97,9 @@ MAGICAL_DAMAGE_NAMES = (
     "origins:genericDamageOverTime",
     "origins:genericDamageOverTime.player",
     "origins:hurt_by_water",
-    "origins:hurt_by_water.player"
+    "origins:hurt_by_water.player",
+    "create:fan_fire",
+    "create:fan_lava"
 )
 PHYSICAL_DTC = {
     "type": "origins:or",
@@ -138,7 +148,35 @@ def attributes(bundle: dict) -> dict:
             "value": bundle["mr"] / 100
         }
     }
-    # TODO: height and health logic
+    # Generic minecraft attributes
+    # https://minecraft.fandom.com/wiki/Attribute
+    # https://origins.readthedocs.io/en/1.10.0/types/power_types/attribute/
+    powers["generic"] = {
+        "type": "origins:attribute",
+        "modifiers": [
+            generic("max_health", (bundle["health"] - 20) / 20),
+            generic("knockback_resistance", bundle["kb_resist"], True),
+            generic("attack_knockback", -bundle["kb_resist"], True),
+            generic("movement_speed", bundle["speed"]),
+            generic("attack_damage", bundle["attack"]) # NOTE: The default value is 2
+        ]
+    },
+    # Pehkui commands and rtp
+    # https://modrinth.com/mod/pehkui
+    height_comp = 195 / bundle["height"]
+    powers["pehkui"] = {
+        "type": "origins:action_on_callback",
+            "entity_action_added": {
+            "type": "origins:and",
+            "actions": [
+                command(f"{PEHKUI}base", bundle["height"] / 185),
+                command(f"{PEHKUI}reach 1"),
+                command(f"{PEHKUI}step_height", height_comp),
+                # Random teleport
+                command(f"execute at @s run spreadplayers ~ ~ 1450 1450 false")
+            ]
+        }
+    }
         
     return powers
 
